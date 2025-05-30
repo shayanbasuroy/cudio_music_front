@@ -44,6 +44,7 @@
         height: 8px;
         position: relative;
         overflow: hidden;
+        cursor: pointer;
       }
 
       .waveform-bg {
@@ -61,12 +62,65 @@
         height: 100%;
         background: rgba(255, 255, 255, 0.3);
         width: 0%;
+        transition: width 0.3s ease;
       }
 
       .volume-control {
         flex: 0 0 auto;
       }
 
+      /* Material button style */
+      .material-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 28px;
+        color: #0f9d58;
+        padding: 8px;
+        transition: color 0.2s ease;
+      }
+
+      .material-button:hover {
+        color: #0c7a43;
+      }
+
+      /* Search bar styles */
+      .search-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .search-bar input {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .material-search {
+        background: #0f9d58;
+        color: white;
+        border: none;
+        padding: 0 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .material-search:hover {
+        background: #0c7a43;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      /* Responsive for mobile */
       @media (max-width: 600px) {
         .player-flex {
           flex-direction: column;
@@ -74,73 +128,99 @@
         }
 
         .search-bar {
-          flex-direction: column;
-          align-items: stretch;
+          flex-direction: row;
+          align-items: center;
         }
 
         .search-bar input {
-          width: 100%;
+          width: auto;
+          flex: 1;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div
+      class="container"
+      style="max-width: 600px; margin: auto; padding: 20px"
+    >
       <h1 class="title">Cudio Media 🎵</h1>
+
       <div class="search-bar">
         <input
           type="text"
           id="searchInput"
           placeholder="Search for music..."
           onkeydown="if(event.key === 'Enter') searchMusic()"
+          autocomplete="off"
         />
-        <button onclick="searchMusic()" class="material-button">
+        <button onclick="searchMusic()" class="material-search" title="Search">
           <span class="material-symbols-outlined">search</span>
         </button>
       </div>
+
       <div id="results"></div>
-    </div>
 
-    <div id="player" class="hidden">
-      <div id="ytplayer" style="display: none"></div>
+      <div id="player" class="hidden" style="margin-top: 20px">
+        <div id="ytplayer" style="display: none"></div>
 
-      <div class="player-container enhanced">
-        <div class="player-flex">
-          <div class="player-info">
-            <img id="player-cover" src="" alt="Cover" />
-            <div>
-              <h3 id="player-title">Title</h3>
-              <p id="player-artist">Artist</p>
+        <div class="player-container enhanced">
+          <div class="player-flex">
+            <div class="player-info">
+              <img
+                id="player-cover"
+                src=""
+                alt="Cover"
+                style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 6px;
+                "
+              />
+              <div>
+                <h3 id="player-title" style="margin: 0; font-size: 18px">
+                  Title
+                </h3>
+                <p
+                  id="player-artist"
+                  style="margin: 0; font-size: 14px; color: #666"
+                >
+                  Artist
+                </p>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button
+                onclick="togglePlayPause()"
+                class="material-button"
+                id="playPauseBtn"
+                title="Play/Pause"
+              >
+                <span class="material-symbols-outlined" id="playPauseIcon"
+                  >play_arrow</span
+                >
+              </button>
+            </div>
+
+            <div class="volume-control">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value="100"
+                id="volumeSlider"
+                onchange="setVolume(this.value)"
+                title="Volume"
+              />
             </div>
           </div>
 
-          <div class="controls">
-            <button onclick="playVideo()" class="material-button">
-              <span class="material-symbols-outlined">play_arrow</span>
-            </button>
-            <button onclick="pauseVideo()" class="material-button">
-              <span class="material-symbols-outlined">pause</span>
-            </button>
-            <button onclick="stopVideo()" class="material-button">
-              <span class="material-symbols-outlined">stop</span>
-            </button>
-          </div>
-
-          <div class="volume-control">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="100"
-              id="volumeSlider"
-              onchange="setVolume(this.value)"
-            />
-          </div>
-        </div>
-
-        <div class="progress-container" onclick="seek(event)">
-          <div class="waveform-bg">
-            <div class="progress-bar" id="progressBar"></div>
+          <div class="progress-container" onclick="seek(event)" title="Seek">
+            <div class="waveform-bg">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -149,21 +229,45 @@
     <script>
       let player;
       let progressInterval;
+      let playerReady = false;
+      let queuedVideoId = null;
+
+      // Cache play/pause icon for easy access
+      const playPauseIcon = document.getElementById("playPauseIcon");
+      const playPauseBtn = document.getElementById("playPauseBtn");
 
       function onYouTubeIframeAPIReady() {
         player = new YT.Player("ytplayer", {
           height: "0",
           width: "0",
           videoId: "",
-          playerVars: { autoplay: 1 },
+          playerVars: { autoplay: 0 },
           events: {
-            onReady: () => updateProgressBar(),
+            onReady: () => {
+              playerReady = true;
+              updateProgressBar();
+              if (queuedVideoId) {
+                loadAndPlayVideo(queuedVideoId);
+                queuedVideoId = null;
+              }
+            },
+            onStateChange: (event) => {
+              if (event.data === YT.PlayerState.ENDED) {
+                playPauseIcon.textContent = "play_arrow";
+              } else if (event.data === YT.PlayerState.PLAYING) {
+                playPauseIcon.textContent = "pause";
+              } else if (event.data === YT.PlayerState.PAUSED) {
+                playPauseIcon.textContent = "play_arrow";
+              }
+            },
           },
         });
       }
 
       function searchMusic() {
-        const query = document.getElementById("searchInput").value;
+        const query = document.getElementById("searchInput").value.trim();
+        if (!query) return;
+
         fetch("https://cudio-back.onrender.com/search", {
           method: "POST",
           headers: {
@@ -179,16 +283,24 @@
           .then((data) => {
             const results = document.getElementById("results");
             results.innerHTML = "";
+            if (data.length === 0) {
+              results.innerHTML = "<p>No results found.</p>";
+              return;
+            }
             data.forEach((song) => {
               const div = document.createElement("div");
               div.classList.add("song");
+              div.style.display = "flex";
+              div.style.alignItems = "center";
+              div.style.gap = "12px";
+              div.style.marginBottom = "12px";
               div.innerHTML = `
-                <img src="${song.thumbnail}" />
-                <div class="info">
-                  <h3>${song.title}</h3>
-                  <p>${song.artists}</p>
+                <img src="${song.thumbnail}" alt="${song.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
+                <div class="info" style="flex: 1;">
+                  <h3 style="margin: 0; font-size: 16px;">${song.title}</h3>
+                  <p style="margin: 0; font-size: 14px; color: #666;">${song.artists}</p>
                 </div>
-                <button class="material-button" onclick="loadVideo('${song.videoId}')">
+                <button class="material-button" onclick="loadVideo('${song.videoId}')" title="Play">
                   <span class="material-symbols-outlined">play_arrow</span>
                 </button>
               `;
@@ -201,19 +313,19 @@
           });
       }
 
-      function loadVideo(videoId) {
-        if (player && typeof player.loadVideoById === "function") {
-          player.loadVideoById(videoId);
-        } else {
-          player = new YT.Player("ytplayer", {
-            height: "0",
-            width: "0",
-            videoId: videoId,
-            events: {
-              onReady: () => updateProgressBar(),
-            },
-          });
+      function loadAndPlayVideo(videoId) {
+        if (!playerReady) {
+          queuedVideoId = videoId;
+          return;
         }
+        player.loadVideoById(videoId);
+        player.playVideo();
+        playPauseIcon.textContent = "pause";
+        updateProgressBar();
+      }
+
+      function loadVideo(videoId) {
+        loadAndPlayVideo(videoId);
 
         const selectedSong = [...document.querySelectorAll(".song button")]
           .find((btn) => btn.getAttribute("onclick").includes(videoId))
@@ -229,22 +341,16 @@
         }
 
         document.getElementById("player").classList.remove("hidden");
-        updateProgressBar();
       }
 
-      function playVideo() {
-        if (player) player.playVideo();
-      }
+      function togglePlayPause() {
+        if (!playerReady) return;
 
-      function pauseVideo() {
-        if (player) player.pauseVideo();
-      }
-
-      function stopVideo() {
-        if (player) {
-          player.stopVideo();
-          clearInterval(progressInterval);
-          document.getElementById("progressBar").style.width = "0%";
+        const state = player.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+        } else {
+          player.playVideo();
         }
       }
 
@@ -253,14 +359,20 @@
         progressInterval = setInterval(() => {
           if (player && player.getDuration && player.getCurrentTime) {
             const duration = player.getDuration();
-            const currentTime = player.getCurrentTime();
-            const progress = (currentTime / duration) * 100;
-            document.getElementById("progressBar").style.width = `${progress}%`;
+            if (duration > 0) {
+              const currentTime = player.getCurrentTime();
+              const progress = (currentTime / duration) * 100;
+              document.getElementById(
+                "progressBar"
+              ).style.width = `${progress}%`;
+            }
           }
         }, 500);
       }
 
       function seek(event) {
+        if (!playerReady) return;
+
         const container = event.currentTarget;
         const rect = container.getBoundingClientRect();
         const x = event.clientX - rect.left;
@@ -275,6 +387,7 @@
         }
       }
 
+      // Load YouTube Iframe API script
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
       document.body.appendChild(tag);
