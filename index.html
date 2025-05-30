@@ -13,7 +13,77 @@
       rel="stylesheet"
     />
     <style>
-      /* Adjust player layout for desktop */
+      body {
+        font-family: "Roboto", sans-serif;
+        background: #e0e0e0;
+        margin: 0;
+        padding: 0;
+        color: #222;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+        color: rgb(0, 0, 0);
+      }
+
+      .search-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .search-bar input {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .material-search {
+        background: #5d0bd9;
+        color: white;
+        border: none;
+        padding: 0 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .material-search:hover {
+        background: #5d0bd9;
+      }
+
+      .material-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 28px;
+        color: #5d0bd9;
+        padding: 8px;
+        transition: color 0.2s ease;
+      }
+
+      .material-button:hover {
+        color: #5d0bd9;
+      }
+
+      .hidden {
+        display: none;
+      }
+
       .player-flex {
         display: flex;
         justify-content: space-between;
@@ -50,8 +120,8 @@
       .waveform-bg {
         background: repeating-linear-gradient(
           90deg,
-          #0f9d58,
-          #0f9d58 2px,
+          #5d0bd9,
+          #5d0bd9 2px,
           transparent 2px,
           transparent 4px
         );
@@ -69,58 +139,6 @@
         flex: 0 0 auto;
       }
 
-      /* Material button style */
-      .material-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 28px;
-        color: #0f9d58;
-        padding: 8px;
-        transition: color 0.2s ease;
-      }
-
-      .material-button:hover {
-        color: #0c7a43;
-      }
-
-      /* Search bar styles */
-      .search-bar {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-      }
-
-      .search-bar input {
-        flex: 1;
-        padding: 10px 12px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-
-      .material-search {
-        background: #0f9d58;
-        color: white;
-        border: none;
-        padding: 0 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .material-search:hover {
-        background: #0c7a43;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      /* Responsive for mobile */
       @media (max-width: 600px) {
         .player-flex {
           flex-direction: column;
@@ -140,10 +158,7 @@
     </style>
   </head>
   <body>
-    <div
-      class="container"
-      style="max-width: 600px; margin: auto; padding: 20px"
-    >
+    <div class="container">
       <h1 class="title">Cudio Media 🎵</h1>
 
       <div class="search-bar">
@@ -164,7 +179,7 @@
       <div id="player" class="hidden" style="margin-top: 20px">
         <div id="ytplayer" style="display: none"></div>
 
-        <div class="player-container enhanced">
+        <div class="player-container">
           <div class="player-flex">
             <div class="player-info">
               <img
@@ -184,7 +199,7 @@
                 </h3>
                 <p
                   id="player-artist"
-                  style="margin: 0; font-size: 14px; color: #666"
+                  style="margin: 0; font-size: 14px; color: #fff"
                 >
                   Artist
                 </p>
@@ -232,9 +247,7 @@
       let playerReady = false;
       let queuedVideoId = null;
 
-      // Cache play/pause icon for easy access
       const playPauseIcon = document.getElementById("playPauseIcon");
-      const playPauseBtn = document.getElementById("playPauseBtn");
 
       function onYouTubeIframeAPIReady() {
         player = new YT.Player("ytplayer", {
@@ -268,6 +281,12 @@
         const query = document.getElementById("searchInput").value.trim();
         if (!query) return;
 
+        const cached = localStorage.getItem("search_" + query.toLowerCase());
+        if (cached) {
+          showResults(JSON.parse(cached));
+          return;
+        }
+
         fetch("https://cudio-back.onrender.com/search", {
           method: "POST",
           headers: {
@@ -276,41 +295,46 @@
           body: JSON.stringify({ query }),
           mode: "cors",
         })
-          .then((res) => {
-            if (!res.ok) throw new Error("Network response was not ok");
-            return res.json();
-          })
+          .then((res) => res.json())
           .then((data) => {
-            const results = document.getElementById("results");
-            results.innerHTML = "";
-            if (data.length === 0) {
-              results.innerHTML = "<p>No results found.</p>";
-              return;
-            }
-            data.forEach((song) => {
-              const div = document.createElement("div");
-              div.classList.add("song");
-              div.style.display = "flex";
-              div.style.alignItems = "center";
-              div.style.gap = "12px";
-              div.style.marginBottom = "12px";
-              div.innerHTML = `
-                <img src="${song.thumbnail}" alt="${song.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
-                <div class="info" style="flex: 1;">
-                  <h3 style="margin: 0; font-size: 16px;">${song.title}</h3>
-                  <p style="margin: 0; font-size: 14px; color: #666;">${song.artists}</p>
-                </div>
-                <button class="material-button" onclick="loadVideo('${song.videoId}')" title="Play">
-                  <span class="material-symbols-outlined">play_arrow</span>
-                </button>
-              `;
-              results.appendChild(div);
-            });
+            localStorage.setItem(
+              "search_" + query.toLowerCase(),
+              JSON.stringify(data)
+            );
+            showResults(data);
           })
           .catch((error) => {
             console.error("Error fetching search results:", error);
             alert("Failed to fetch search results. Please try again later.");
           });
+      }
+
+      function showResults(data) {
+        const results = document.getElementById("results");
+        results.innerHTML = "";
+        if (data.length === 0) {
+          results.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+        data.forEach((song) => {
+          const div = document.createElement("div");
+          div.classList.add("song");
+          div.style.display = "flex";
+          div.style.alignItems = "center";
+          div.style.gap = "12px";
+          div.style.marginBottom = "12px";
+          div.innerHTML = `
+            <img src="${song.thumbnail}" alt="${song.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
+            <div class="info" style="flex: 1;">
+              <h3 style="margin: 0; font-size: 16px;">${song.title}</h3>
+              <p style="margin: 0; font-size: 14px; color: #666;">${song.artists}</p>
+            </div>
+            <button class="material-button" onclick="loadVideo('${song.videoId}')" title="Play">
+              <span class="material-symbols-outlined">play_arrow</span>
+            </button>
+          `;
+          results.appendChild(div);
+        });
       }
 
       function loadAndPlayVideo(videoId) {
@@ -326,7 +350,6 @@
 
       function loadVideo(videoId) {
         loadAndPlayVideo(videoId);
-
         const selectedSong = [...document.querySelectorAll(".song button")]
           .find((btn) => btn.getAttribute("onclick").includes(videoId))
           ?.closest(".song");
@@ -354,17 +377,23 @@
         }
       }
 
+      function setVolume(value) {
+        if (playerReady) {
+          player.setVolume(value);
+        }
+      }
+
       function updateProgressBar() {
         clearInterval(progressInterval);
         progressInterval = setInterval(() => {
           if (player && player.getDuration && player.getCurrentTime) {
             const duration = player.getDuration();
+            const currentTime = player.getCurrentTime();
             if (duration > 0) {
-              const currentTime = player.getCurrentTime();
-              const progress = (currentTime / duration) * 100;
+              const percentage = (currentTime / duration) * 100;
               document.getElementById(
                 "progressBar"
-              ).style.width = `${progress}%`;
+              ).style.width = `${percentage}%`;
             }
           }
         }, 500);
@@ -375,23 +404,12 @@
 
         const container = event.currentTarget;
         const rect = container.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const percent = x / rect.width;
+        const offsetX = event.clientX - rect.left;
+        const percentage = offsetX / rect.width;
         const duration = player.getDuration();
-        player.seekTo(duration * percent, true);
+        player.seekTo(duration * percentage, true);
       }
-
-      function setVolume(value) {
-        if (player && typeof player.setVolume === "function") {
-          player.setVolume(parseInt(value));
-        }
-      }
-
-      // Load YouTube Iframe API script
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(tag);
     </script>
+    <script src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>
-
