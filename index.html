@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cudio Media</title>
     <link rel="stylesheet" href="style.css" />
     <link
@@ -12,154 +13,25 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
       rel="stylesheet"
     />
-    <style>
-      body {
-        font-family: "Roboto", sans-serif;
-        background: #e0e0e0;
-        margin: 0;
-        padding: 0;
-        color: #222;
-      }
-
-      .container {
-        max-width: 600px;
-        margin: auto;
-        padding: 20px;
-      }
-
-      .title {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-        color: rgb(0, 0, 0);
-      }
-
-      .search-bar {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-      }
-
-      .search-bar input {
-        flex: 1;
-        padding: 10px 12px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-
-      .material-search {
-        background: #5d0bd9;
-        color: white;
-        border: none;
-        padding: 0 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .material-search:hover {
-        background: #5d0bd9;
-      }
-
-      .material-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 28px;
-        color: #5d0bd9;
-        padding: 8px;
-        transition: color 0.2s ease;
-      }
-
-      .material-button:hover {
-        color: #5d0bd9;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      .player-flex {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
-        width: 100%;
-      }
-
-      .player-info {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .controls {
-        display: flex;
-        gap: 16px;
-        justify-content: center;
-      }
-
-      .progress-container {
-        width: 100%;
-        margin-top: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-        height: 8px;
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-      }
-
-      .waveform-bg {
-        background: repeating-linear-gradient(
-          90deg,
-          #5d0bd9,
-          #5d0bd9 2px,
-          transparent 2px,
-          transparent 4px
-        );
-        height: 100%;
-      }
-
-      .progress-bar {
-        height: 100%;
-        background: rgba(255, 255, 255, 0.3);
-        width: 0%;
-        transition: width 0.3s ease;
-      }
-
-      .volume-control {
-        flex: 0 0 auto;
-      }
-
-      @media (max-width: 600px) {
-        .player-flex {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        .search-bar {
-          flex-direction: row;
-          align-items: center;
-        }
-
-        .search-bar input {
-          width: auto;
-          flex: 1;
-        }
-      }
-    </style>
   </head>
   <body>
+    <div id="splashScreen">
+      <div class="splash-content">
+        <img
+          src="https://i.postimg.cc/4yXXZNXD/IMG-20250530-173039.jpg"
+          alt="Cudio Media Logo"
+          class="splash-image"
+        />
+        <div class="splash-text"></div>
+      </div>
+    </div>
+
     <div class="container">
-      <h1 class="title">Cudio Media 🎵</h1>
+      <img
+        src="https://i.postimg.cc/4yXXZNXD/IMG-20250530-173039.jpg"
+        alt="Cudio Media Logo"
+        class="logo-image"
+      />
 
       <div class="search-bar">
         <input
@@ -176,37 +48,26 @@
 
       <div id="results"></div>
 
-      <div id="player" class="hidden" style="margin-top: 20px">
+      <div id="player" class="hidden">
         <div id="ytplayer" style="display: none"></div>
 
         <div class="player-container">
+          <div class="progress-container" onclick="seek(event)" title="Seek">
+            <div class="waveform-bg">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+          </div>
+
           <div class="player-flex">
-            <div class="player-info">
-              <img
-                id="player-cover"
-                src=""
-                alt="Cover"
-                style="
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 6px;
-                "
-              />
+            <div class="player-info" onclick="openFullscreenPlayer()">
+              <img id="player-cover" src="" alt="Cover" />
               <div>
-                <h3 id="player-title" style="margin: 0; font-size: 18px">
-                  Title
-                </h3>
-                <p
-                  id="player-artist"
-                  style="margin: 0; font-size: 14px; color: #fff"
-                >
-                  Artist
-                </p>
+                <h3 id="player-title">Title</h3>
+                <p id="player-artist">Artist</p>
               </div>
             </div>
 
-            <div class="controls">
+            <div class="player-controls">
               <button
                 onclick="togglePlayPause()"
                 class="material-button"
@@ -217,26 +78,159 @@
                   >play_arrow</span
                 >
               </button>
-            </div>
 
-            <div class="volume-control">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value="100"
-                id="volumeSlider"
-                onchange="setVolume(this.value)"
-                title="Volume"
-              />
+              <div class="volume-control-wrapper">
+                <button
+                  onclick="toggleVolumeSlider()"
+                  class="material-button"
+                  id="volumeBtn"
+                  title="Toggle Volume"
+                >
+                  <span class="material-symbols-outlined" id="volumeIcon"
+                    >volume_up</span
+                  >
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="100"
+                  id="volumeSlider"
+                  class="volume-slider hidden"
+                  title="Volume"
+                />
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div class="progress-container" onclick="seek(event)" title="Seek">
+    <div id="fullscreenPlayer" class="hidden">
+      <div class="fullscreen-header">
+        <button
+          class="material-button close-fullscreen-btn"
+          onclick="closeFullscreenPlayer()"
+          title="Close Player"
+        >
+          <span class="material-symbols-outlined">expand_more</span>
+        </button>
+        <span class="playing-from-text">PLAYING FROM SEARCH</span>
+        <span class="search-query-text">"Interlinked" in Search</span>
+        <button
+          class="material-button more-options-btn"
+          title="More Options"
+          onclick="alert('More options coming soon!')"
+        >
+          <span class="material-symbols-outlined">more_vert</span>
+        </button>
+      </div>
+
+      <div class="fullscreen-content">
+        <img id="fullscreen-cover" src="" alt="Album Cover" />
+
+        <div class="fullscreen-song-info">
+          <h2 id="fullscreen-title">Song Title</h2>
+          <p id="fullscreen-artist">Artist Name</p>
+          <button
+            class="material-button add-to-playlist-btn"
+            title="Add to Playlist"
+            onclick="alert('Add to playlist coming soon!')"
+          >
+            <span class="material-symbols-outlined">add_circle</span>
+          </button>
+        </div>
+
+        <div class="fullscreen-progress-container">
+          <div class="progress-container fullscreen-seek" onclick="seek(event)">
             <div class="waveform-bg">
-              <div class="progress-bar" id="progressBar"></div>
+              <div class="progress-bar" id="fullscreenProgressBar"></div>
             </div>
           </div>
+          <div class="time-display">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+        </div>
+
+        <div class="fullscreen-controls">
+          <button
+            class="material-button shuffle-btn"
+            title="Shuffle"
+            onclick="alert('Shuffle coming soon!')"
+          >
+            <span class="material-symbols-outlined">shuffle</span>
+          </button>
+          <button
+            class="material-button skip-prev-btn"
+            title="Previous"
+            onclick="alert('Previous song coming soon!')"
+          >
+            <span class="material-symbols-outlined">skip_previous</span>
+          </button>
+          <button
+            class="material-button play-pause-fullscreen-btn"
+            onclick="togglePlayPause()"
+            title="Play/Pause"
+          >
+            <span class="material-symbols-outlined" id="playPauseIconFullscreen"
+              >play_arrow</span
+            >
+          </button>
+          <button
+            class="material-button skip-next-btn"
+            title="Next"
+            onclick="alert('Next song coming soon!')"
+          >
+            <span class="material-symbols-outlined">skip_next</span>
+          </button>
+          <button
+            class="material-button repeat-btn"
+            title="Repeat"
+            onclick="alert('Repeat coming soon!')"
+          >
+            <span class="material-symbols-outlined">repeat</span>
+          </button>
+        </div>
+
+        <div class="fullscreen-bottom-actions">
+          <button
+            class="material-button cast-btn"
+            title="Cast"
+            onclick="alert('Cast coming soon!')"
+          >
+            <span class="material-symbols-outlined">cast</span>
+          </button>
+
+          <div class="volume-control-wrapper fullscreen-volume-wrapper">
+            <button
+              onclick="toggleFullscreenVolumeSlider()"
+              class="material-button"
+              id="volumeBtnFullscreen"
+              title="Toggle Volume"
+            >
+              <span class="material-symbols-outlined" id="volumeIconFullscreen"
+                >volume_up</span
+              >
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="100"
+              id="volumeSliderFullscreen"
+              class="volume-slider hidden"
+              title="Volume"
+            />
+          </div>
+
+          <button
+            class="material-button share-btn"
+            title="Share"
+            onclick="alert('Share coming soon!')"
+          >
+            <span class="material-symbols-outlined">share</span>
+          </button>
         </div>
       </div>
     </div>
@@ -248,6 +242,46 @@
       let queuedVideoId = null;
 
       const playPauseIcon = document.getElementById("playPauseIcon");
+      const volumeSlider = document.getElementById("volumeSlider");
+      const volumeIcon = document.getElementById("volumeIcon");
+      let currentVolume = 100; // Store current volume to restore after mute
+
+      // New elements for fullscreen player
+      const fullscreenPlayer = document.getElementById("fullscreenPlayer");
+      const fullscreenCover = document.getElementById("fullscreen-cover");
+      const fullscreenTitle = document.getElementById("fullscreen-title");
+      const fullscreenArtist = document.getElementById("fullscreen-artist");
+      const fullscreenProgressBar = document.getElementById(
+        "fullscreenProgressBar"
+      );
+      const playPauseIconFullscreen = document.getElementById(
+        "playPauseIconFullscreen"
+      );
+      const currentTimeSpan = document.getElementById("currentTime");
+      const durationSpan = document.getElementById("duration");
+      const volumeSliderFullscreen = document.getElementById(
+        "volumeSliderFullscreen"
+      );
+      const volumeIconFullscreen = document.getElementById(
+        "volumeIconFullscreen"
+      );
+
+      // --- Splash Screen Logic (New) ---
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          document.getElementById("splashScreen").classList.add("fade-out");
+        }, 2000); // 2 seconds
+      });
+      // --- End Splash Screen Logic ---
+
+      // Attach event listeners for volume slider
+      volumeSlider.addEventListener("input", onVolumeInput);
+      volumeSlider.addEventListener("change", onVolumeChange);
+      volumeSliderFullscreen.addEventListener("input", onVolumeInputFullscreen);
+      volumeSliderFullscreen.addEventListener(
+        "change",
+        onVolumeChangeFullscreen
+      );
 
       function onYouTubeIframeAPIReady() {
         player = new YT.Player("ytplayer", {
@@ -258,7 +292,10 @@
           events: {
             onReady: () => {
               playerReady = true;
+              player.setVolume(currentVolume); // Set initial volume
               updateProgressBar();
+              updateVolumeIcon(currentVolume); // Update initial icon for mini-player
+              updateVolumeIconFullscreen(currentVolume); // Update initial icon for fullscreen
               if (queuedVideoId) {
                 loadAndPlayVideo(queuedVideoId);
                 queuedVideoId = null;
@@ -267,10 +304,13 @@
             onStateChange: (event) => {
               if (event.data === YT.PlayerState.ENDED) {
                 playPauseIcon.textContent = "play_arrow";
+                playPauseIconFullscreen.textContent = "play_arrow";
               } else if (event.data === YT.PlayerState.PLAYING) {
                 playPauseIcon.textContent = "pause";
+                playPauseIconFullscreen.textContent = "pause";
               } else if (event.data === YT.PlayerState.PAUSED) {
                 playPauseIcon.textContent = "play_arrow";
+                playPauseIconFullscreen.textContent = "play_arrow";
               }
             },
           },
@@ -280,6 +320,10 @@
       function searchMusic() {
         const query = document.getElementById("searchInput").value.trim();
         if (!query) return;
+
+        // Display loading indicator (optional)
+        const results = document.getElementById("results");
+        results.innerHTML = "<p>Searching...</p>";
 
         const cached = localStorage.getItem("search_" + query.toLowerCase());
         if (cached) {
@@ -306,6 +350,7 @@
           .catch((error) => {
             console.error("Error fetching search results:", error);
             alert("Failed to fetch search results. Please try again later.");
+            results.innerHTML = "<p>Failed to load results.</p>"; // Clear loading
           });
       }
 
@@ -319,15 +364,11 @@
         data.forEach((song) => {
           const div = document.createElement("div");
           div.classList.add("song");
-          div.style.display = "flex";
-          div.style.alignItems = "center";
-          div.style.gap = "12px";
-          div.style.marginBottom = "12px";
           div.innerHTML = `
-            <img src="${song.thumbnail}" alt="${song.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
-            <div class="info" style="flex: 1;">
-              <h3 style="margin: 0; font-size: 16px;">${song.title}</h3>
-              <p style="margin: 0; font-size: 14px; color: #666;">${song.artists}</p>
+            <img src="${song.thumbnail}" alt="${song.title}" />
+            <div class="info">
+              <h3>${song.title}</h3>
+              <p>${song.artists}</p>
             </div>
             <button class="material-button" onclick="loadVideo('${song.videoId}')" title="Play">
               <span class="material-symbols-outlined">play_arrow</span>
@@ -345,6 +386,7 @@
         player.loadVideoById(videoId);
         player.playVideo();
         playPauseIcon.textContent = "pause";
+        playPauseIconFullscreen.textContent = "pause";
         updateProgressBar();
       }
 
@@ -355,12 +397,18 @@
           ?.closest(".song");
 
         if (selectedSong) {
-          document.getElementById("player-cover").src =
-            selectedSong.querySelector("img").src;
-          document.getElementById("player-title").textContent =
-            selectedSong.querySelector("h3").textContent;
-          document.getElementById("player-artist").textContent =
-            selectedSong.querySelector("p").textContent;
+          const coverSrc = selectedSong.querySelector("img").src;
+          const titleText = selectedSong.querySelector("h3").textContent;
+          const artistText = selectedSong.querySelector("p").textContent;
+
+          document.getElementById("player-cover").src = coverSrc;
+          document.getElementById("player-title").textContent = titleText;
+          document.getElementById("player-artist").textContent = artistText;
+
+          // Update fullscreen player info as well
+          fullscreenCover.src = coverSrc;
+          fullscreenTitle.textContent = titleText;
+          fullscreenArtist.textContent = artistText;
         }
 
         document.getElementById("player").classList.remove("hidden");
@@ -377,9 +425,99 @@
         }
       }
 
-      function setVolume(value) {
+      // Function to handle volume slider input (continuously while dragging)
+      function onVolumeInput() {
         if (playerReady) {
-          player.setVolume(value);
+          player.setVolume(this.value);
+          currentVolume = this.value; // Update stored volume
+          volumeSliderFullscreen.value = this.value; // Sync fullscreen slider
+          updateVolumeIcon(this.value);
+          updateVolumeIconFullscreen(this.value);
+
+          // Force re-animation by briefly removing and re-adding the class
+          this.classList.remove("volume-active"); // Remove first
+          void this.offsetWidth; // Trigger reflow
+          this.classList.add("volume-active"); // Add back
+        }
+      }
+
+      // Function to handle volume slider change (when user releases)
+      function onVolumeChange() {
+        this.classList.remove("volume-active"); // Ensure class is removed after release
+      }
+
+      function toggleVolumeSlider() {
+        // Toggle 'hidden' class based on its current state
+        if (volumeSlider.classList.contains("hidden")) {
+          volumeSlider.classList.remove("hidden");
+        } else {
+          volumeSlider.classList.add("hidden");
+        }
+        // Ensure fullscreen slider visibility is synced if it's active
+        if (!fullscreenPlayer.classList.contains("hidden")) {
+          if (volumeSliderFullscreen.classList.contains("hidden")) {
+            volumeSliderFullscreen.classList.remove("hidden");
+          } else {
+            volumeSliderFullscreen.classList.add("hidden");
+          }
+        }
+      }
+
+      // New functions for fullscreen volume slider
+      function onVolumeInputFullscreen() {
+        if (playerReady) {
+          player.setVolume(this.value);
+          currentVolume = this.value; // Update stored volume
+          volumeSlider.value = this.value; // Sync mini-player slider
+          updateVolumeIcon(this.value);
+          updateVolumeIconFullscreen(this.value);
+
+          // Force re-animation
+          this.classList.remove("volume-active");
+          void this.offsetWidth;
+          this.classList.add("volume-active");
+        }
+      }
+
+      function onVolumeChangeFullscreen() {
+        this.classList.remove("volume-active");
+      }
+
+      function toggleFullscreenVolumeSlider() {
+        // Toggle 'hidden' class for fullscreen slider
+        if (volumeSliderFullscreen.classList.contains("hidden")) {
+          volumeSliderFullscreen.classList.remove("hidden");
+        } else {
+          volumeSliderFullscreen.classList.add("hidden");
+        }
+        // Ensure mini-player slider visibility is synced if it's active
+        if (fullscreenPlayer.classList.contains("hidden")) {
+          // Only sync if fullscreen is NOT active
+          if (volumeSlider.classList.contains("hidden")) {
+            volumeSlider.classList.remove("hidden");
+          } else {
+            volumeSlider.classList.add("hidden");
+          }
+        }
+      }
+
+      function updateVolumeIcon(volume) {
+        if (volume == 0) {
+          volumeIcon.textContent = "volume_off";
+        } else if (volume > 0 && volume <= 50) {
+          volumeIcon.textContent = "volume_down";
+        } else {
+          volumeIcon.textContent = "volume_up";
+        }
+      }
+
+      function updateVolumeIconFullscreen(volume) {
+        if (volume == 0) {
+          volumeIconFullscreen.textContent = "volume_off";
+        } else if (volume > 0 && volume <= 50) {
+          volumeIconFullscreen.textContent = "volume_down";
+        } else {
+          volumeIconFullscreen.textContent = "volume_up";
         }
       }
 
@@ -394,22 +532,77 @@
               document.getElementById(
                 "progressBar"
               ).style.width = `${percentage}%`;
+              document.getElementById(
+                "fullscreenProgressBar"
+              ).style.width = `${percentage}%`; // Update fullscreen progress bar
+
+              // Update time displays
+              currentTimeSpan.textContent = formatTime(currentTime);
+              durationSpan.textContent = formatTime(duration);
             }
           }
         }, 500);
       }
 
       function seek(event) {
-        if (!playerReady) return;
+        if (!playerReady || !player.getDuration) return;
 
         const container = event.currentTarget;
         const rect = container.getBoundingClientRect();
-        const offsetX = event.clientX - rect.left;
+        let offsetX;
+
+        // Check if event is a touch event or mouse event
+        if (event.touches) {
+          offsetX = event.touches[0].clientX - rect.left;
+        } else {
+          offsetX = event.clientX - rect.left;
+        }
+
         const percentage = offsetX / rect.width;
         const duration = player.getDuration();
         player.seekTo(duration * percentage, true);
       }
+
+      function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${
+          remainingSeconds < 10 ? "0" : ""
+        }${remainingSeconds}`;
+      }
+
+      // Full-screen player functions
+      function openFullscreenPlayer() {
+        fullscreenPlayer.classList.remove("hidden");
+        document.body.style.overflow = "hidden"; // Prevent scrolling behind fullscreen player
+        document.getElementById("player").classList.add("hidden-mini-player"); // Hide mini-player
+
+        // Update fullscreen player with current player state
+        fullscreenCover.src = document.getElementById("player-cover").src;
+        fullscreenTitle.textContent =
+          document.getElementById("player-title").textContent;
+        fullscreenArtist.textContent =
+          document.getElementById("player-artist").textContent;
+        // Sync play/pause icon
+        playPauseIconFullscreen.textContent =
+          player.getPlayerState() === YT.PlayerState.PLAYING
+            ? "pause"
+            : "play_arrow";
+        // Sync volume slider
+        volumeSliderFullscreen.value = player.getVolume();
+        updateVolumeIconFullscreen(player.getVolume());
+      }
+
+      function closeFullscreenPlayer() {
+        fullscreenPlayer.classList.add("hidden");
+        document.body.style.overflow = "auto"; // Restore scrolling
+        document
+          .getElementById("player")
+          .classList.remove("hidden-mini-player"); // Show mini-player
+        // Ensure the mini-player volume slider is hidden when closing fullscreen
+        volumeSlider.classList.add("hidden");
+      }
     </script>
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="http://www.youtube.com/iframe_api"></script>
   </body>
 </html>
