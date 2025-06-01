@@ -27,11 +27,13 @@
     </div>
 
     <div class="container">
-      <img
-        src="https://i.postimg.cc/4yXXZNXD/IMG-20250530-173039.jpg"
-        alt="Cudio Media Logo"
-        class="logo-image"
-      />
+      <a href="javascript:location.reload()" class="logo-link">
+        <img
+          src="https://i.postimg.cc/4yXXZNXD/IMG-20250530-173039.jpg"
+          alt="Cudio Media Logo"
+          class="logo-image"
+        />
+      </a>
 
       <div class="search-bar">
         <input
@@ -46,6 +48,19 @@
         </button>
       </div>
 
+      <div id="searchHistory" class="search-history hidden">
+        <div class="history-header">
+          <h3>Recent Searches</h3>
+          <button
+            class="material-button clear-history-btn"
+            onclick="clearSearchHistory()"
+            title="Clear Search History"
+          >
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </div>
       <div id="results"></div>
 
       <div id="player" class="hidden">
@@ -266,13 +281,136 @@
         "volumeIconFullscreen"
       );
 
-      // --- Splash Screen Logic (New) ---
+      // Search History Elements
+      const searchInput = document.getElementById("searchInput");
+      const searchHistoryDiv = document.getElementById("searchHistory");
+      const historyListDiv = document.getElementById("historyList");
+      const resultsDiv = document.getElementById("results");
+
+      const MAX_HISTORY_ITEMS = 5; // Maximum number of search history items
+      let searchHistory = []; // Array to store search history
+
+      // --- Splash Screen Logic ---
       window.addEventListener("load", () => {
         setTimeout(() => {
           document.getElementById("splashScreen").classList.add("fade-out");
         }, 2000); // 2 seconds
       });
       // --- End Splash Screen Logic ---
+
+      // --- Search History Functions ---
+      function loadSearchHistoryFromStorage() {
+        const storedHistory = localStorage.getItem("cudioSearchHistory");
+        if (storedHistory) {
+          searchHistory = JSON.parse(storedHistory);
+        }
+        renderSearchHistory();
+      }
+
+      function saveSearchToHistory(query) {
+        query = query.trim();
+        if (!query) return;
+
+        // Remove duplicates and add to the beginning
+        searchHistory = searchHistory.filter((item) => item !== query);
+        searchHistory.unshift(query);
+
+        // Limit the number of items
+        if (searchHistory.length > MAX_HISTORY_ITEMS) {
+          searchHistory = searchHistory.slice(0, MAX_HISTORY_ITEMS);
+        }
+
+        localStorage.setItem(
+          "cudioSearchHistory",
+          JSON.stringify(searchHistory)
+        );
+        renderSearchHistory();
+      }
+
+      function renderSearchHistory() {
+        historyListDiv.innerHTML = ""; // Clear existing history
+        if (searchHistory.length === 0) {
+          historyListDiv.innerHTML =
+            '<p class="no-history">No recent searches.</p>';
+          // searchHistoryDiv.classList.add("hidden"); // We will control this via focus/click events
+          return;
+        }
+
+        // Only add items if there is history
+        searchHistory.forEach((query) => {
+          const historyItem = document.createElement("div");
+          historyItem.classList.add("history-item");
+          historyItem.innerHTML = `
+            <span class="material-symbols-outlined history-icon">history</span>
+            <span class="history-query">${query}</span>
+            <button class="material-button history-play-btn" data-query="${query}" title="Search again">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+          `;
+          historyItem
+            .querySelector(".history-play-btn")
+            .addEventListener("click", (e) => {
+              e.stopPropagation(); // Prevent item click from re-triggering
+              searchInput.value = query;
+              searchMusic();
+            });
+          historyItem.addEventListener("click", () => {
+            searchInput.value = query;
+            searchMusic();
+          });
+          historyListDiv.appendChild(historyItem);
+        });
+      }
+
+      function clearSearchHistory() {
+        if (confirm("Are you sure you want to clear your search history?")) {
+          localStorage.removeItem("cudioSearchHistory");
+          searchHistory = [];
+          renderSearchHistory();
+          // After clearing, ensure the div is hidden
+          searchHistoryDiv.classList.add("hidden");
+        }
+      }
+      // --- End Search History Functions ---
+
+      // --- Search Input Event Listeners for History Visibility ---
+      searchInput.addEventListener("focus", () => {
+        if (searchHistory.length > 0) {
+          // Only show history if it's not empty
+          searchHistoryDiv.classList.remove("hidden");
+          resultsDiv.classList.add("hidden"); // Hide results when focusing on search
+        } else {
+          // If no history, ensure history div is hidden and results also hidden (if empty)
+          searchHistoryDiv.classList.add("hidden");
+          if (resultsDiv.innerHTML.trim() === "") {
+            resultsDiv.classList.add("hidden");
+          }
+        }
+      });
+
+      // Hide history when clicking outside search bar or history area
+      document.addEventListener("click", (event) => {
+        const isClickInsideSearchBar = searchInput.contains(event.target);
+        const isClickInsideSearchHistory = searchHistoryDiv.contains(
+          event.target
+        );
+
+        if (!isClickInsideSearchBar && !isClickInsideSearchHistory) {
+          searchHistoryDiv.classList.add("hidden");
+          // When history is hidden, if the search input is empty, ensure results are also hidden
+          if (searchInput.value.trim() === "") {
+            resultsDiv.classList.add("hidden");
+          }
+        }
+      });
+
+      // Prevent history from hiding when clicking inside history but not on an item's search button
+      // This is important to allow scrolling or clicking within history list without it disappearing
+      searchHistoryDiv.addEventListener("click", (event) => {
+        event.stopPropagation(); // Stop propagation so document click listener doesn't hide it
+      });
+
+      // --- End Search Input Event Listeners ---
 
       // Attach event listeners for volume slider
       volumeSlider.addEventListener("input", onVolumeInput);
@@ -319,11 +457,22 @@
 
       function searchMusic() {
         const query = document.getElementById("searchInput").value.trim();
-        if (!query) return;
+        if (!query) {
+          // If query is empty, show history if available, and clear/hide results
+          if (searchHistory.length > 0) {
+            searchHistoryDiv.classList.remove("hidden");
+          }
+          resultsDiv.innerHTML = ""; // Clear results
+          resultsDiv.classList.add("hidden"); // Hide results
+          return;
+        }
+
+        saveSearchToHistory(query); // Save search to history
 
         // Display loading indicator (optional)
-        const results = document.getElementById("results");
-        results.innerHTML = "<p>Searching...</p>";
+        resultsDiv.innerHTML = "<p>Searching...</p>";
+        searchHistoryDiv.classList.add("hidden"); // Hide history when search results are shown
+        resultsDiv.classList.remove("hidden"); // Ensure results are visible
 
         const cached = localStorage.getItem("search_" + query.toLowerCase());
         if (cached) {
@@ -350,15 +499,14 @@
           .catch((error) => {
             console.error("Error fetching search results:", error);
             alert("Failed to fetch search results. Please try again later.");
-            results.innerHTML = "<p>Failed to load results.</p>"; // Clear loading
+            resultsDiv.innerHTML = "<p>Failed to load results.</p>"; // Clear loading
           });
       }
 
       function showResults(data) {
-        const results = document.getElementById("results");
-        results.innerHTML = "";
+        resultsDiv.innerHTML = "";
         if (data.length === 0) {
-          results.innerHTML = "<p>No results found.</p>";
+          resultsDiv.innerHTML = "<p>No results found.</p>";
           return;
         }
         data.forEach((song) => {
@@ -374,7 +522,7 @@
               <span class="material-symbols-outlined">play_arrow</span>
             </button>
           `;
-          results.appendChild(div);
+          resultsDiv.appendChild(div);
         });
       }
 
@@ -448,18 +596,13 @@
 
       function toggleVolumeSlider() {
         // Toggle 'hidden' class based on its current state
-        if (volumeSlider.classList.contains("hidden")) {
-          volumeSlider.classList.remove("hidden");
-        } else {
-          volumeSlider.classList.add("hidden");
-        }
-        // Ensure fullscreen slider visibility is synced if it's active
+        volumeSlider.classList.toggle("hidden");
+        // Sync fullscreen slider visibility if fullscreen is active
         if (!fullscreenPlayer.classList.contains("hidden")) {
-          if (volumeSliderFullscreen.classList.contains("hidden")) {
-            volumeSliderFullscreen.classList.remove("hidden");
-          } else {
-            volumeSliderFullscreen.classList.add("hidden");
-          }
+          volumeSliderFullscreen.classList.toggle(
+            "hidden",
+            volumeSlider.classList.contains("hidden")
+          );
         }
       }
 
@@ -485,19 +628,13 @@
 
       function toggleFullscreenVolumeSlider() {
         // Toggle 'hidden' class for fullscreen slider
-        if (volumeSliderFullscreen.classList.contains("hidden")) {
-          volumeSliderFullscreen.classList.remove("hidden");
-        } else {
-          volumeSliderFullscreen.classList.add("hidden");
-        }
-        // Ensure mini-player slider visibility is synced if it's active
+        volumeSliderFullscreen.classList.toggle("hidden");
+        // Sync mini-player slider visibility if fullscreen is NOT active
         if (fullscreenPlayer.classList.contains("hidden")) {
-          // Only sync if fullscreen is NOT active
-          if (volumeSlider.classList.contains("hidden")) {
-            volumeSlider.classList.remove("hidden");
-          } else {
-            volumeSlider.classList.add("hidden");
-          }
+          volumeSlider.classList.toggle(
+            "hidden",
+            volumeSliderFullscreen.classList.contains("hidden")
+          );
         }
       }
 
@@ -602,6 +739,15 @@
         // Ensure the mini-player volume slider is hidden when closing fullscreen
         volumeSlider.classList.add("hidden");
       }
+
+      // Initialize search history and initial state on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        loadSearchHistoryFromStorage();
+        // Initially hide results. History visibility depends on search input focus.
+        resultsDiv.classList.add("hidden");
+        // Hide history initially unless the input is already focused (unlikely on load)
+        searchHistoryDiv.classList.add("hidden");
+      });
     </script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </body>
