@@ -131,7 +131,9 @@
           <span class="material-symbols-outlined">expand_more</span>
         </button>
         <span class="playing-from-text">PLAYING FROM SEARCH</span>
-        <span class="search-query-text">"Interlinked" in Search</span>
+        <span class="search-query-text" id="fullscreenSearchQuery"
+          >"Interlinked" in Search</span
+        >
         <button
           class="material-button more-options-btn"
           title="More Options"
@@ -255,6 +257,7 @@
       let progressInterval;
       let playerReady = false;
       let queuedVideoId = null;
+      let lastSearchQuery = ""; // New variable to store the last search query
 
       const playPauseIcon = document.getElementById("playPauseIcon");
       const volumeSlider = document.getElementById("volumeSlider");
@@ -280,6 +283,9 @@
       const volumeIconFullscreen = document.getElementById(
         "volumeIconFullscreen"
       );
+      const fullscreenSearchQuerySpan = document.getElementById(
+        "fullscreenSearchQuery"
+      ); // Get the new span
 
       // Search History Elements
       const searchInput = document.getElementById("searchInput");
@@ -467,6 +473,7 @@
           return;
         }
 
+        lastSearchQuery = query; // Store the current search query
         saveSearchToHistory(query); // Save search to history
 
         // Display loading indicator (optional)
@@ -728,6 +735,9 @@
         // Sync volume slider
         volumeSliderFullscreen.value = player.getVolume();
         updateVolumeIconFullscreen(player.getVolume());
+
+        // NEW: Update the search query text in the fullscreen player
+        fullscreenSearchQuerySpan.textContent = `"${lastSearchQuery}" in Search`;
       }
 
       function closeFullscreenPlayer() {
