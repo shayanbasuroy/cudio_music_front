@@ -15,7 +15,7 @@ body {
   -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox */
 }
 
-/* Splash Screen Styles (New) */
+/* Splash Screen Styles */
 #splashScreen {
   position: fixed;
   top: 0;
@@ -85,12 +85,19 @@ body {
   display: none; /* Hide the text title when image is used */
 }
 
-/* Logo Image (New) */
-.logo-image {
+/* Logo Link and Image */
+.logo-link {
   display: block; /* Make it a block element to center */
-  width: 180px; /* Adjust width as needed */
   margin: 0 auto 30px auto; /* Center and add bottom margin */
+  width: 180px; /* Constrain width of the link/image container */
+  cursor: pointer; /* Indicate it's clickable */
+}
+
+.logo-image {
+  display: block; /* Ensure the image itself is block */
+  width: 100%; /* Make image fill its parent link */
   height: auto;
+  object-fit: contain;
 }
 
 .search-bar {
@@ -177,6 +184,103 @@ body {
   user-select: none; /* Prevent text selection on icons */
 }
 
+/* Search History Styles */
+.search-history {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+  background: #1f1f1f;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  text-align: left;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.clear-history-btn {
+  background: none;
+  color: #aaa;
+  width: 36px;
+  height: 36px;
+}
+
+.clear-history-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2a2a2a;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.history-item:hover {
+  background-color: #383838;
+  transform: translateY(-2px);
+}
+
+.history-item .history-icon {
+  font-size: 20px;
+  color: #4900dc;
+  margin-right: 10px;
+}
+
+.history-item .history-query {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e0e0e0;
+  font-size: 1rem;
+}
+
+.history-item .history-play-btn {
+  background: none;
+  color: #bbb;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.history-item .history-play-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.no-history {
+  color: #aaa;
+  font-style: italic;
+  text-align: center;
+  padding: 10px;
+}
+/* End Search History Styles */
+
 /* Song Card */
 #results {
   margin-bottom: 120px; /* Space for the fixed player at the bottom */
@@ -253,12 +357,26 @@ body {
   opacity: 0 !important; /* Start transparent */
   pointer-events: none !important; /* Disable clicks */
   visibility: hidden !important; /* Ensure it's not visible for screen readers */
-  height: 0 !important; /* Collapse height to remove from layout */
+  max-height: 0 !important; /* Collapse height to remove from layout */
   overflow: hidden !important; /* Hide content if height is collapsed */
-  transition: opacity 0.4s ease, height 0.4s ease, transform 0.4s ease !important; /* Smooth transitions */
+  margin-top: 0 !important; /* Remove top margin when hidden */
+  margin-bottom: 0 !important; /* Remove bottom margin when hidden */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  transition: opacity 0.4s ease, max-height 0.4s ease, transform 0.4s ease,
+    margin 0.4s ease, padding 0.4s ease !important; /* Smooth transitions */
   transform: translateY(
     20px
   ); /* Start slightly off-screen for slide-in effect */
+}
+
+/* For elements that become visible */
+.search-history:not(.hidden),
+#results:not(.hidden) {
+  max-height: 500px !important; /* A large enough value to accommodate content */
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 /* Player (Mini-Player at the bottom) */
@@ -338,21 +456,20 @@ body {
   text-overflow: ellipsis;
 }
 
+/* Play/Pause Button Alignment Fix for Mini-Player */
 .player-controls {
   display: flex;
-  align-items: center; /* Align items vertically */
-  gap: 10px; /* Space between buttons and slider */
+  align-items: center; /* Ensures vertical alignment */
+  gap: 10px;
   flex-shrink: 0;
   position: relative;
-  /* Removed padding-right as slider is now inline */
 }
 
-/* Volume control wrapper - no longer needed as a separate positioned context for slider */
-/* .volume-control-wrapper {
-  position: relative;
+.volume-control-wrapper {
   display: flex;
-  align-items: center;
-} */
+  align-items: center; /* Align volume button and slider */
+  gap: 10px;
+}
 
 .volume-slider {
   /* Hide default appearance */
@@ -403,7 +520,6 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
   cursor: pointer;
-  /* Removed rotation */
   position: static; /* Ensure it's not absolutely positioned within itself */
   margin: 0; /* Reset margins */
 }
@@ -433,7 +549,6 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
   cursor: pointer;
-  /* Removed rotation */
   position: static; /* Ensure it's not absolutely positioned within itself */
   margin: 0; /* Reset margins */
 }
@@ -651,6 +766,7 @@ body {
   margin-top: 8px;
 }
 
+/* Play/Pause Button Alignment Fix for Fullscreen Player */
 .fullscreen-controls {
   display: flex;
   justify-content: space-around;
@@ -938,97 +1054,6 @@ body {
     margin-top: 20px;
     max-width: none;
     padding-bottom: 10px;
-  }
-
-  #volumeSliderFullscreen {
-    width: 60px; /* Make it a bit shorter on mobile */
-    height: 4px;
-  }
-}
-
-/* Further optimizations for very small screens (e.g., iPhone 5/SE) */
-@media (max-width: 480px) {
-  .container {
-    padding: 10px;
-  }
-
-  .title {
-    font-size: 1.5rem;
-    margin-bottom: 15px;
-  }
-
-  .search-bar input {
-    font-size: 14px;
-    padding: 7px 10px;
-  }
-
-  .material-button,
-  .material-search {
-    width: 36px;
-    height: 36px;
-    padding: 6px;
-  }
-
-  .material-symbols-outlined {
-    font-size: 20px;
-  }
-
-  .song {
-    padding: 8px 10px;
-    margin-bottom: 10px;
-  }
-
-  .song img {
-    width: 45px;
-    height: 45px;
-  }
-
-  .song h3 {
-    font-size: 0.95rem;
-  }
-
-  .song p {
-    font-size: 0.7rem;
-  }
-
-  #player {
-    padding: 8px 10px;
-  }
-
-  .volume-slider {
-    width: 50px; /* Even shorter on very small screens */
-  }
-
-  /* Fullscreen Player Very Small Screen Adjustments */
-  #fullscreenPlayer {
-    padding: 10px;
-  }
-
-  .fullscreen-header {
-    font-size: 0.8em;
-  }
-
-  .fullscreen-song-info h2 {
-    font-size: 1.3rem;
-  }
-
-  .fullscreen-song-info p {
-    font-size: 0.9rem;
-  }
-
-  #fullscreen-cover {
-    max-width: 250px;
-  }
-
-  .fullscreen-controls .material-button {
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
-  }
-
-  .play-pause-fullscreen-btn {
-    width: 58px;
-    height: 58px;
   }
 
   #volumeSliderFullscreen {
