@@ -146,18 +146,20 @@
       </div>
 
       <div class="fullscreen-content">
-        <img id="fullscreen-cover" src="" alt="Album Cover" />
+        <div>
+          <img id="fullscreen-cover" src="" alt="Album Cover" />
 
-        <div class="fullscreen-song-info">
-          <h2 id="fullscreen-title">Song Title</h2>
-          <p id="fullscreen-artist">Artist Name</p>
-          <button
-            class="material-button add-to-playlist-btn"
-            title="Add to Playlist"
-            onclick="alert('Add to playlist coming soon!')"
-          >
-            <span class="material-symbols-outlined">add_circle</span>
-          </button>
+          <div class="fullscreen-song-info">
+            <h2 id="fullscreen-title">Song Title</h2>
+            <p id="fullscreen-artist">Artist Name</p>
+            <button
+              class="material-button add-to-playlist-btn"
+              title="Add to Playlist"
+              onclick="alert('Add to playlist coming soon!')"
+            >
+              <span class="material-symbols-outlined">add_circle</span>
+            </button>
+          </div>
         </div>
 
         <div class="fullscreen-progress-container">
@@ -172,80 +174,90 @@
           </div>
         </div>
 
-        <div class="fullscreen-controls">
-          <button
-            class="material-button shuffle-btn"
-            title="Shuffle"
-            onclick="alert('Shuffle coming soon!')"
-          >
-            <span class="material-symbols-outlined">shuffle</span>
-          </button>
-          <button
-            class="material-button skip-prev-btn"
-            title="Previous"
-            onclick="playPreviousSong()"
-          >
-            <span class="material-symbols-outlined">skip_previous</span>
-          </button>
-          <button
-            class="material-button play-pause-fullscreen-btn"
-            onclick="togglePlayPause()"
-            title="Play/Pause"
-          >
-            <span class="material-symbols-outlined" id="playPauseIconFullscreen"
-              >play_arrow</span
-            >
-          </button>
-          <button
-            class="material-button skip-next-btn"
-            title="Next"
-            onclick="playNextSong()"
-          >
-            <span class="material-symbols-outlined">skip_next</span>
-          </button>
-          <button
-            class="material-button repeat-btn"
-            title="Repeat"
-            onclick="alert('Repeat coming soon!')"
-          >
-            <span class="material-symbols-outlined">repeat</span>
-          </button>
-        </div>
-
-        <div class="fullscreen-bottom-actions">
-          <button
-            class="material-button cast-btn"
-            title="Cast"
-            onclick="alert('Cast coming soon!')"
-          >
-            <span class="material-symbols-outlined">cast</span>
-          </button>
-
-          <div class="volume-control-wrapper fullscreen-volume-wrapper">
+        <div>
+          <div class="fullscreen-controls">
             <button
-              onclick="toggleFullscreenVolumeSlider()"
-              class="material-button"
-              id="volumeBtnFullscreen"
-              title="Toggle Volume"
+              class="material-button shuffle-btn"
+              title="Shuffle"
+              onclick="alert('Shuffle coming soon!')"
             >
-              <span class="material-symbols-outlined" id="volumeIconFullscreen"
-                >volume_up</span
+              <span class="material-symbols-outlined">shuffle</span>
+            </button>
+            <button
+              class="material-button skip-prev-btn"
+              title="Previous"
+              onclick="playPreviousSong()"
+            >
+              <span class="material-symbols-outlined">skip_previous</span>
+            </button>
+            <button
+              class="material-button play-pause-fullscreen-btn"
+              onclick="togglePlayPause()"
+              title="Play/Pause"
+            >
+              <span
+                class="material-symbols-outlined"
+                id="playPauseIconFullscreen"
+                >play_arrow</span
               >
             </button>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value="100"
-              id="volumeSliderFullscreen"
-              class="volume-slider hidden"
-              title="Volume"
-            />
+            <button
+              class="material-button skip-next-btn"
+              title="Next"
+              onclick="playNextSong()"
+            >
+              <span class="material-symbols-outlined">skip_next</span>
+            </button>
+            <button
+              class="material-button repeat-btn"
+              title="Repeat"
+              onclick="alert('Repeat coming soon!')"
+            >
+              <span class="material-symbols-outlined">repeat</span>
+            </button>
           </div>
 
-          <button class="material-button share-btn" id="shareBtn" title="Share">
-            <span class="material-symbols-outlined">share</span>
-          </button>
+          <div class="fullscreen-bottom-actions">
+            <button
+              class="material-button cast-btn"
+              title="Cast"
+              onclick="alert('Cast coming soon!')"
+            >
+              <span class="material-symbols-outlined">cast</span>
+            </button>
+
+            <div class="volume-control-wrapper fullscreen-volume-wrapper">
+              <button
+                onclick="toggleFullscreenVolumeSlider()"
+                class="material-button"
+                id="volumeBtnFullscreen"
+                title="Toggle Volume"
+              >
+                <span
+                  class="material-symbols-outlined"
+                  id="volumeIconFullscreen"
+                  >volume_up</span
+                >
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value="100"
+                id="volumeSliderFullscreen"
+                class="volume-slider hidden"
+                title="Volume"
+              />
+            </div>
+
+            <button
+              class="material-button share-btn"
+              id="shareBtn"
+              title="Share"
+            >
+              <span class="material-symbols-outlined">share</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -598,18 +610,24 @@
       }
 
       function showResults(data) {
-        hideRecentlyPlayed(); // <-- Always hide recently played when showing results
+        hideRecentlyPlayed();
         resultsDiv.innerHTML = "";
-        currentSearchResults = data; // Store results for next/prev navigation
+        currentSearchResults = data;
         if (data.length === 0) {
           resultsDiv.innerHTML = "<p>No results found.</p>";
           return;
         }
         data.forEach((song, idx) => {
+          // Get high quality thumbnail by replacing default with maxresdefault
+          const highQualityThumbnail = song.thumbnail.replace(
+            "default.jpg",
+            "maxresdefault.jpg"
+          );
+
           const div = document.createElement("div");
           div.classList.add("song");
           div.innerHTML = `
-            <img src="${song.thumbnail}" alt="${song.title}" />
+            <img src="${highQualityThumbnail}" alt="${song.title}" onerror="this.src='${song.thumbnail}'" />
             <div class="info">
               <h3>${song.title}</h3>
               <p>${song.artists}</p>
@@ -638,10 +656,8 @@
       function loadVideo(videoId, idx = -1) {
         loadAndPlayVideo(videoId);
 
-        // Set currentSongIndex if provided
         if (idx !== -1) currentSongIndex = idx;
         else {
-          // Try to find index in currentSearchResults
           currentSongIndex = currentSearchResults.findIndex(
             (s) => s.videoId === videoId
           );
@@ -652,20 +668,21 @@
           ?.closest(".song");
 
         if (selectedSong) {
+          // Get high quality thumbnail
           const coverSrc = selectedSong.querySelector("img").src;
           const titleText = selectedSong.querySelector("h3").textContent;
           const artistText = selectedSong.querySelector("p").textContent;
 
+          // Update both mini and fullscreen players with high quality image
           document.getElementById("player-cover").src = coverSrc;
           document.getElementById("player-title").textContent = titleText;
           document.getElementById("player-artist").textContent = artistText;
 
-          // Update fullscreen player info as well
           fullscreenCover.src = coverSrc;
           fullscreenTitle.textContent = titleText;
           fullscreenArtist.textContent = artistText;
 
-          // Save to recently played
+          // Save to recently played with high quality thumbnail
           saveToRecentlyPlayed({
             videoId,
             thumbnail: coverSrc,
