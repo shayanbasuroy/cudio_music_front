@@ -810,254 +810,114 @@ body {
   padding-bottom: 20px; /* Space from bottom of screen */
 }
 
-.fullscreen-bottom-actions .material-button {
-  background: none;
-  color: #bbb; /* Faded icons for bottom actions */
-}
-
-.fullscreen-bottom-actions .material-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Fullscreen Volume Slider Specifics */
-.fullscreen-volume-wrapper {
-  /* This wrapper can be used if you want to group the volume button and slider */
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Space between the button and the slider */
-}
-
-/* The horizontal slider for fullscreen */
-#volumeSliderFullscreen {
-  /* Hide default appearance */
-  -webkit-appearance: none;
-  appearance: none;
-
-  position: static; /* Make it part of the flex flow */
-  width: 80px; /* Horizontal length */
-  height: 4px; /* Thickness of the track */
-
-  background: transparent;
-  outline: none;
-  z-index: 102; /* Ensure it's above other elements if necessary */
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  vertical-align: middle; /* Align with button */
-}
-
-#volumeSliderFullscreen:not(.hidden) {
-  opacity: 1;
-}
-
-/* Ensure the track and thumb are styled similarly to the mini-player's, but for the fullscreen slider */
-#volumeSliderFullscreen::-webkit-slider-runnable-track,
-#volumeSliderFullscreen::-moz-range-track {
-  width: 100%;
-  height: 4px; /* Track thickness */
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  cursor: pointer;
-  /* Removed rotation */
-  position: static; /* Reset positioning */
-  margin: 0; /* Reset margins */
-}
-
-#volumeSliderFullscreen::-webkit-slider-thumb,
-#volumeSliderFullscreen::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #4900dc; /* Purple thumb */
-  cursor: grab;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
-  margin-top: -5px; /* Center thumb on track */
-}
-
-/* Responsive adjustments for the full-screen player */
+/* Modify the fullscreen player styles for mobile optimization */
 @media (max-width: 768px) {
-  .container {
-    margin: 30px auto;
-    padding: 15px;
-  }
-
-  .title {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-  }
-
-  .search-bar {
-    flex-wrap: nowrap;
-    padding: 6px;
-    margin-bottom: 20px; /* Reduce margin */
-  }
-
-  .search-bar input {
-    font-size: 15px;
-    padding: 8px 12px;
-  }
-
-  .material-button,
-  .material-search {
-    width: 40px;
-    height: 40px;
-    padding: 8px;
-  }
-
-  .song {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 12px;
-    margin-bottom: 15px;
-  }
-
-  .song img {
-    margin: 0 0 10px 0;
-    width: 50px;
-    height: 50px;
-  }
-
-  .song .info {
-    width: 100%;
-  }
-
-  .song h3 {
-    font-size: 1rem;
-  }
-
-  .song p {
-    font-size: 0.8rem;
-  }
-
-  #player {
-    padding: 10px 15px;
-  }
-
-  .player-flex {
-    flex-direction: column; /* Stack player info and controls vertically */
-    gap: 10px;
-    align-items: center; /* Center items when stacked */
-  }
-
-  .player-info {
-    justify-content: center; /* Center player info content */
-    width: 100%; /* Take full width when stacked */
-  }
-
-  #player-cover {
-    width: 40px;
-    height: 40px;
-  }
-
-  #player-title {
-    font-size: 0.9rem;
-  }
-
-  #player-artist {
-    font-size: 0.75rem;
-  }
-
-  .player-controls {
-    width: 100%; /* Make controls full width */
-    justify-content: center; /* Center play/pause and volume button */
-    padding-right: 0; /* Remove padding-right for mobile to recenter controls */
-  }
-
-  /* Adjust volume slider for mobile to appear correctly - horizontal */
-  .volume-slider {
-    position: static; /* Ensure it remains in flow */
-    width: 60px; /* Make it a bit shorter on mobile */
-    height: 4px;
-  }
-
-  .volume-slider::-webkit-slider-runnable-track,
-  .volume-slider::-moz-range-track {
-    margin: 0; /* No special margins needed for horizontal */
-  }
-
-  /* Fullscreen Player Mobile Adjustments */
   #fullscreenPlayer {
-    padding: 15px;
-    justify-content: space-around; /* Distribute content more evenly */
+    padding: 20px 15px;
+    justify-content: flex-start; /* Start content from top */
   }
 
   .fullscreen-header {
-    flex-wrap: wrap; /* Allow header items to wrap if needed */
-    justify-content: center;
-    font-size: 0.85em;
+    padding: 10px;
+    margin-top: 10px; /* Reduced top margin */
   }
 
-  .close-fullscreen-btn {
-    order: -1; /* Move to the beginning */
-    margin-right: auto; /* Push to left */
-  }
-
-  .more-options-btn {
-    order: 1; /* Move to the end */
-    margin-left: auto; /* Push to right */
-  }
-
-  .playing-from-text,
-  .search-query-text {
-    flex-basis: 100%; /* Take full width */
-    text-align: center;
-    margin-top: 5px; /* Space between lines */
+  .playing-from-text {
+    font-size: 0.8rem;
+    margin-bottom: 0;
   }
 
   .search-query-text {
-    max-width: none; /* No max width for mobile */
+    font-size: 0.8rem;
+    margin-bottom: 5px;
   }
 
   .fullscreen-content {
-    gap: 15px;
-    padding: 10px 0;
+    padding: 0;
+    gap: 20px;
+    margin-top: 20px;
+    justify-content: flex-start; /* Align content to top */
   }
 
   #fullscreen-cover {
-    max-width: 280px; /* Smaller image on mobile */
+    width: 85vw; /* Make image bigger relative to viewport width */
+    max-width: 350px; /* Maximum width limit */
+    height: auto;
+    aspect-ratio: 1/1; /* Keep square ratio */
+    margin: 0 auto;
+    border-radius: 16px;
+  }
+
+  .fullscreen-song-info {
+    margin-top: 25px;
   }
 
   .fullscreen-song-info h2 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
   }
 
   .fullscreen-song-info p {
-    font-size: 1rem;
-  }
-
-  .add-to-playlist-btn {
-    right: 5px; /* Adjust position for smaller screens */
-    width: 36px;
-    height: 36px;
+    font-size: 1.1rem;
+    color: #999;
   }
 
   .fullscreen-progress-container {
-    margin-top: 15px;
+    width: 90%;
+    margin: 15px auto;
   }
 
   .fullscreen-controls {
-    margin-top: 20px;
-    max-width: none; /* Allow controls to take full width */
+    margin-top: 30px;
+    gap: 20px;
   }
 
+  /* Make control buttons bigger */
   .fullscreen-controls .material-button {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
+    width: 52px;
+    height: 52px;
+    font-size: 26px;
   }
 
+  /* Make play/pause button even bigger */
   .play-pause-fullscreen-btn {
-    width: 64px;
-    height: 64px;
+    width: 68px;
+    height: 68px;
+    font-size: 32px !important;
   }
 
   .fullscreen-bottom-actions {
-    margin-top: 20px;
-    max-width: none;
-    padding-bottom: 10px;
+    position: fixed;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
   }
 
-  #volumeSliderFullscreen {
-    width: 50px; /* Even shorter on very small screens */
+  /* Time display adjustments */
+  .time-display {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    color: #aaa;
+  }
+
+  /* Progress bar height */
+  .fullscreen-seek {
+    height: 4px;
+  }
+}
+
+/* Additional optimization for very tall screens */
+@media (min-height: 800px) and (max-width: 768px) {
+  .fullscreen-content {
+    margin-top: 40px;
+  }
+
+  #fullscreen-cover {
+    width: 90vw;
+    max-width: 400px;
   }
 }
 
