@@ -63,6 +63,8 @@
       </div>
       <div id="results"></div>
 
+      <div id="recentlyPlayed" class="recently-played hidden"></div>
+
       <div id="player" class="hidden">
         <div id="ytplayer" style="display: none"></div>
 
@@ -181,7 +183,7 @@
           <button
             class="material-button skip-prev-btn"
             title="Previous"
-            onclick="alert('Previous song coming soon!')"
+            onclick="playPreviousSong()"
           >
             <span class="material-symbols-outlined">skip_previous</span>
           </button>
@@ -197,7 +199,7 @@
           <button
             class="material-button skip-next-btn"
             title="Next"
-            onclick="alert('Next song coming soon!')"
+            onclick="playNextSong()"
           >
             <span class="material-symbols-outlined">skip_next</span>
           </button>
@@ -241,11 +243,7 @@
             />
           </div>
 
-          <button
-            class="material-button share-btn"
-            title="Share"
-            onclick="alert('Share coming soon!')"
-          >
+          <button class="material-button share-btn" id="shareBtn" title="Share">
             <span class="material-symbols-outlined">share</span>
           </button>
         </div>
@@ -258,6 +256,8 @@
       let playerReady = false;
       let queuedVideoId = null;
       let lastSearchQuery = ""; // New variable to store the last search query
+      let currentSearchResults = [];
+      let currentSongIndex = -1;
 
       const playPauseIcon = document.getElementById("playPauseIcon");
       const volumeSlider = document.getElementById("volumeSlider");
@@ -295,6 +295,11 @@
 
       const MAX_HISTORY_ITEMS = 5; // Maximum number of search history items
       let searchHistory = []; // Array to store search history
+
+      // Recently Played Elements
+      const recentlyPlayedDiv = document.getElementById("recentlyPlayed");
+      const MAX_RECENTLY_PLAYED = 6;
+      let recentlyPlayed = [];
 
       // --- Splash Screen Logic ---
       window.addEventListener("load", () => {
@@ -378,6 +383,86 @@
         }
       }
       // --- End Search History Functions ---
+
+      // --- Recently Played Functions ---
+      function loadRecentlyPlayedFromStorage() {
+        const stored = localStorage.getItem("cudioRecentlyPlayed");
+        if (stored) {
+          recentlyPlayed = JSON.parse(stored);
+        }
+        renderRecentlyPlayed();
+      }
+
+      function saveToRecentlyPlayed(song) {
+        // Remove if already exists (by videoId)
+        recentlyPlayed = recentlyPlayed.filter(
+          (item) => item.videoId !== song.videoId
+        );
+        recentlyPlayed.unshift(song);
+        if (recentlyPlayed.length > MAX_RECENTLY_PLAYED) {
+          recentlyPlayed = recentlyPlayed.slice(0, MAX_RECENTLY_PLAYED);
+        }
+        localStorage.setItem(
+          "cudioRecentlyPlayed",
+          JSON.stringify(recentlyPlayed)
+        );
+        renderRecentlyPlayed();
+      }
+
+      function renderRecentlyPlayed() {
+        if (recentlyPlayed.length === 0) {
+          recentlyPlayedDiv.innerHTML = "";
+          recentlyPlayedDiv.classList.add("hidden");
+          return;
+        }
+        let html = `<div class="recently-played-title">Recently Played</div>
+    <div class="recently-played-list">`;
+        recentlyPlayed.forEach((song) => {
+          html += `
+      <div class="recently-played-item" onclick="playRecentlyPlayed('${song.videoId}')">
+        <img src="${song.thumbnail}" alt="${song.title}" />
+        <div class="recently-played-info">
+          <h4>${song.title}</h4>
+          <p>${song.artists}</p>
+        </div>
+      </div>
+    `;
+        });
+        html += `</div>`;
+        recentlyPlayedDiv.innerHTML = html;
+        recentlyPlayedDiv.classList.remove("hidden");
+      }
+
+      // Play a song from recently played
+      function playRecentlyPlayed(videoId) {
+        // Find song object
+        const song = recentlyPlayed.find((s) => s.videoId === videoId);
+        if (song) {
+          loadAndPlayVideo(song.videoId);
+          document.getElementById("player-cover").src = song.thumbnail;
+          document.getElementById("player-title").textContent = song.title;
+          document.getElementById("player-artist").textContent = song.artists;
+          fullscreenCover.src = song.thumbnail;
+          fullscreenTitle.textContent = song.title;
+          fullscreenArtist.textContent = song.artists;
+          document.getElementById("player").classList.remove("hidden");
+        }
+      }
+
+      window.playRecentlyPlayed = playRecentlyPlayed;
+
+      // Hide recently played when searching
+      function hideRecentlyPlayed() {
+        recentlyPlayedDiv.classList.add("hidden");
+      }
+
+      // Show recently played if not searching
+      function showRecentlyPlayedIfNeeded() {
+        if (searchInput.value.trim() === "" && recentlyPlayed.length > 0) {
+          recentlyPlayedDiv.classList.remove("hidden");
+        }
+      }
+      // --- End Recently Played Functions ---
 
       // --- Search Input Event Listeners for History Visibility ---
       searchInput.addEventListener("focus", () => {
@@ -470,6 +555,7 @@
           }
           resultsDiv.innerHTML = ""; // Clear results
           resultsDiv.classList.add("hidden"); // Hide results
+          showRecentlyPlayedIfNeeded(); // <-- Show recently played if no search
           return;
         }
 
@@ -480,6 +566,7 @@
         resultsDiv.innerHTML = "<p>Searching...</p>";
         searchHistoryDiv.classList.add("hidden"); // Hide history when search results are shown
         resultsDiv.classList.remove("hidden"); // Ensure results are visible
+        hideRecentlyPlayed(); // <-- Hide recently played when searching
 
         const cached = localStorage.getItem("search_" + query.toLowerCase());
         if (cached) {
@@ -511,12 +598,14 @@
       }
 
       function showResults(data) {
+        hideRecentlyPlayed(); // <-- Always hide recently played when showing results
         resultsDiv.innerHTML = "";
+        currentSearchResults = data; // Store results for next/prev navigation
         if (data.length === 0) {
           resultsDiv.innerHTML = "<p>No results found.</p>";
           return;
         }
-        data.forEach((song) => {
+        data.forEach((song, idx) => {
           const div = document.createElement("div");
           div.classList.add("song");
           div.innerHTML = `
@@ -525,7 +614,7 @@
               <h3>${song.title}</h3>
               <p>${song.artists}</p>
             </div>
-            <button class="material-button" onclick="loadVideo('${song.videoId}')" title="Play">
+            <button class="material-button" onclick="loadVideo('${song.videoId}', ${idx})" title="Play">
               <span class="material-symbols-outlined">play_arrow</span>
             </button>
           `;
@@ -545,8 +634,19 @@
         updateProgressBar();
       }
 
-      function loadVideo(videoId) {
+      // Update loadVideo to save to recently played
+      function loadVideo(videoId, idx = -1) {
         loadAndPlayVideo(videoId);
+
+        // Set currentSongIndex if provided
+        if (idx !== -1) currentSongIndex = idx;
+        else {
+          // Try to find index in currentSearchResults
+          currentSongIndex = currentSearchResults.findIndex(
+            (s) => s.videoId === videoId
+          );
+        }
+
         const selectedSong = [...document.querySelectorAll(".song button")]
           .find((btn) => btn.getAttribute("onclick").includes(videoId))
           ?.closest(".song");
@@ -564,6 +664,14 @@
           fullscreenCover.src = coverSrc;
           fullscreenTitle.textContent = titleText;
           fullscreenArtist.textContent = artistText;
+
+          // Save to recently played
+          saveToRecentlyPlayed({
+            videoId,
+            thumbnail: coverSrc,
+            title: titleText,
+            artists: artistText,
+          });
         }
 
         document.getElementById("player").classList.remove("hidden");
@@ -750,14 +858,80 @@
         volumeSlider.classList.add("hidden");
       }
 
+      // Share button logic
+      document
+        .getElementById("shareBtn")
+        .addEventListener("click", function () {
+          const title = fullscreenTitle.textContent;
+          const artist = fullscreenArtist.textContent;
+          const query = encodeURIComponent(`${title} ${artist}`.trim());
+          const url = `${window.location.origin}${window.location.pathname}?q=${query}`;
+          const shareText = `Listen to "${title}" by ${artist} on Cudio Media!`;
+
+          if (navigator.share) {
+            navigator
+              .share({
+                title: "Cudio Media",
+                text: shareText,
+                url: url,
+              })
+              .catch(() => {
+                // User cancelled or error, fallback to clipboard
+                navigator.clipboard.writeText(url);
+                alert("Shareable link copied to clipboard!");
+              });
+          } else {
+            navigator.clipboard.writeText(url);
+            alert("Shareable link copied to clipboard!");
+          }
+        });
+
       // Initialize search history and initial state on page load
       document.addEventListener("DOMContentLoaded", () => {
         loadSearchHistoryFromStorage();
-        // Initially hide results. History visibility depends on search input focus.
+        loadRecentlyPlayedFromStorage();
         resultsDiv.classList.add("hidden");
-        // Hide history initially unless the input is already focused (unlikely on load)
         searchHistoryDiv.classList.add("hidden");
+        showRecentlyPlayedIfNeeded();
       });
+
+      function playPreviousSong() {
+        if (recentlyPlayed.length < 2) {
+          alert("No previous song available!");
+          return;
+        }
+        // The first item is the current song, so play the second one
+        const prevSong = recentlyPlayed[1];
+        if (prevSong) {
+          loadAndPlayVideo(prevSong.videoId);
+          document.getElementById("player-cover").src = prevSong.thumbnail;
+          document.getElementById("player-title").textContent = prevSong.title;
+          document.getElementById("player-artist").textContent =
+            prevSong.artists;
+          fullscreenCover.src = prevSong.thumbnail;
+          fullscreenTitle.textContent = prevSong.title;
+          fullscreenArtist.textContent = prevSong.artists;
+          document.getElementById("player").classList.remove("hidden");
+          // Move the previous song to the top of the recently played list
+          saveToRecentlyPlayed(prevSong);
+        }
+      }
+
+      function playNextSong() {
+        if (
+          currentSearchResults.length === 0 ||
+          currentSongIndex === -1 ||
+          currentSongIndex + 1 >= currentSearchResults.length
+        ) {
+          alert("No next song available!");
+          return;
+        }
+        const nextSong = currentSearchResults[currentSongIndex + 1];
+        loadVideo(nextSong.videoId, currentSongIndex + 1);
+      }
+      window.playNextSong = playNextSong;
+
+      window.playPreviousSong = playPreviousSong;
     </script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </body>
